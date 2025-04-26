@@ -1,13 +1,13 @@
 from typing import Optional, Sequence
 
 
-class HTMLNODE:
+class HTMLNode:
 
     def __init__(
         self,
         tag: Optional[str] = None,
         value: Optional[str] = None,
-        children: Optional[Sequence["HTMLNODE"]] = None,
+        children: Optional[Sequence["HTMLNode"]] = None,
         props: Optional[dict[str, str]] = None,
     ):
         self.tag = tag
