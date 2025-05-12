@@ -3,14 +3,12 @@ from typing import Optional, Sequence
 import html
 
 
-
 class HTMLNode:
-
     def __init__(
         self,
         tag: Optional[str] = None,
         value: Optional[str] = None,
-        children: Optional[Sequence["HTMLNode"]] = None,
+        children: Optional[Sequence["ParentNode | LeafNode"]] = None,
         props: Optional[dict[str, str]] = None,
     ):
         self.tag = tag
@@ -33,44 +31,46 @@ class HTMLNode:
         return props_string
 
     def __repr__(self) -> str:
-        return f"HTMLNode({self.tag}, {self.value}, {self.children}, {self.props})"
+        return f"{self.__class__.__name__}({self.tag}, {self.value}, {self.children}, {self.props})"
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, HTMLNode):
             return False
         return (
-            self.tag == other.tag and
-            self.value == other.value and
-            self.children == other.children and
-            self.props == other.props
+            self.tag == other.tag
+            and self.value == other.value
+            and self.children == other.children
+            and self.props == other.props
         )
 
-class LeafNode(HTMLNode):
 
+class LeafNode(HTMLNode):
     def __init__(
-            self,
-            tag: Optional[str] = None,
-            value: Optional[str] = None,
-            props: Optional[dict[str, str]] = None
+        self,
+        tag: Optional[str] = None,
+        value: Optional[str] = None,
+        props: Optional[dict[str, str]] = None,
     ):
         super().__init__(tag, value, None, props)
 
     def to_html(self) -> str:
-        if self.value is None or not self.value:
+        if self.value is None:
             raise ValueError("All LeafNodes must have a value.")
         if not self.tag:
             result = html.escape(self.value)
+        elif self.tag == "img":
+            result = f"<img{self.props_to_html()}>"
         else:
             result = f"<{self.tag}{self.props_to_html()}>{html.escape(self.value)}</{self.tag}>"
         return result
 
-class ParentNode(HTMLNode):
 
+class ParentNode(HTMLNode):
     def __init__(
-            self,
-            tag: Optional[str] = None,
-            children: Optional[Sequence[HTMLNode]] = None,
-            props: Optional[dict[str, str]] = None
+        self,
+        tag: str,
+        children: Sequence["ParentNode | LeafNode"],
+        props: Optional[dict[str, str]] = None,
     ):
         super().__init__(tag, None, children, props)
 
@@ -81,11 +81,10 @@ class ParentNode(HTMLNode):
             raise ValueError("All ParentNode must have children")
 
         result: list[str] = [f"<{self.tag}{self.props_to_html()}>"]
-
         for node in self.children:
+            if not isinstance(node, HTMLNode):
+                raise TypeError("Child not valid type")
             result.append(node.to_html())
-
         result.append(f"</{self.tag}>")
-
         result_string: str = "".join(result)
         return result_string
