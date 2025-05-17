@@ -10,32 +10,32 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         self.assertEqual(
             result,
             [
-                TextNode("This is a ", "text"),
-                TextNode("code block", "code"),
-                TextNode(" here", "text"),
+                TextNode("This is a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" here", TextType.TEXT),
             ],
         )
 
     def test_no_delimiter(self):
-        node = TextNode("This is a regular text.", "text")
-        result = split_nodes_delimiter([node], "`", "code")
+        node = TextNode("This is a regular text.", TextType.TEXT)
+        result = split_nodes_delimiter([node], "`", TextType.TEXT)
         self.assertEqual(node, result[0])
 
     def test_multiple_same_delimiters(self):
-        node = TextNode("Start `code1` middle `code2` end", "text")
-        result = split_nodes_delimiter([node], "`", "code")
+        node = TextNode("Start `code1` middle `code2` end", TextType.TEXT)
+        result = split_nodes_delimiter([node], "`", TextType.CODE)
         self.assertEqual(
             result,
             [
-                TextNode("Start ", "text"),
-                TextNode("code1", "code"),
-                TextNode(" middle ", "text"),
-                TextNode("code2", "code"),
-                TextNode(" end", "text"),
+                TextNode("Start ", TextType.TEXT),
+                TextNode("code1", TextType.CODE),
+                TextNode(" middle ", TextType.TEXT),
+                TextNode("code2", TextType.CODE),
+                TextNode(" end", TextType.TEXT),
             ],
         )
 
     def test_unmatched_delimiter(self):
-        node = TextNode("This is `unmatched delimiter", "text")
+        node = TextNode("This is `unmatched delimiter", TextType.TEXT)
         with self.assertRaises(ValueError):
-            result = split_nodes_delimiter([node], "`", "code")
+            result = split_nodes_delimiter([node], "`", TextType.CODE)
