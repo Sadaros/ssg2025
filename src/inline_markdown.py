@@ -30,9 +30,38 @@ def split_nodes_delimiter(
     return new_nodes
 
 
+def split_nodes_image(old_nodes: Sequence[TextNode]) -> Sequence[TextNode]:
+    new_nodes: list[TextNode] = []
+    for node in old_nodes:
+        if node.text == "":
+            continue
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        images = extract_markdown_images(node.text)
+        if not images:
+            new_nodes.append(node)
+            continue
+        sub_list: list[TextNode] = []
+
+        for image in images:
+            extracted_text = node.text.split(f"![{image[0]}]({image[1]})", 1)
+            node.text = extracted_text[1]
+            sub_list.append(TextNode(extracted_text[0], TextType.TEXT))
+            sub_list.append(TextNode(image[1], TextType.IMAGE, image[1]))
+        if node.text != "":
+            sub_list.append(TextNode(node.text, TextType.TEXT))
+        new_nodes.extend(sub_list)
+
+    return new_nodes
+
+
+def split_nodes_link(old_nodes: Sequence[TextNode]) -> Sequence[TextNode]: ...
+
+
 def extract_markdown_images(text: str) -> list[tuple]:
-    return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+    return re.findall(r"!\[(.*?)]\((.*?)\)", text)
 
 
 def extract_markdown_links(text: str) -> list[tuple]:
-    return re.findall(r"\[(.*?)\]\((.*?)\)", text)
+    return re.findall(r"\[(.*?)]\((.*?)\)", text)
